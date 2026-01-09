@@ -5,7 +5,7 @@ from collections import deque, Counter
 
 from letter_classifier import load_templates, detect_letter
 
-VIDEO_PATH = "data/videos/password.mp4"
+VIDEO_PATH = "data/videos/video_contraseña_final.mp4"
 PASSWORD = ["A", "B", "C"]
 
 CALIB_PATH = "src/calibration/calibration_data.npz"
@@ -202,3 +202,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
