@@ -4,11 +4,13 @@ from collections import deque, Counter
 
 from letter_classifier import load_templates, detect_letter
 
-VIDEO_PATH = "video_contraseña.mp4"
+VIDEO_PATH = "data/videos/password.mp4"
+
+
 PASSWORD = ["A", "B", "C"]
 
 # --- Calibración  ---
-CALIB_PATH = "calibration_data.npz"
+CALIB_PATH = "src/calibration/calibration_data.npz"
 USE_CALIB = True  
 
 # --- Parámetros del nuevo decodificador robusto ---
@@ -198,3 +200,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
