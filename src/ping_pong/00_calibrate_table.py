@@ -1,8 +1,8 @@
 import cv2
 import numpy as np
 
-VIDEO_PATH = "video_1.mp4"          
-HOMO_PATH  = "table_homography.npz" 
+VIDEO_PATH = "data/videos/video_1.mp4"
+HOMO_PATH  = "data/calibration/table_homography.npz"
 H = 450
 W = int(H * 2.74 / 1.525)
 print("Usando W,H =", W, H)
@@ -69,3 +69,4 @@ np.savez(HOMO_PATH, M=M, W=W, H=H)
 
 print(" Homografía guardada en:", HOMO_PATH)
 print("M =\n", M)
+
