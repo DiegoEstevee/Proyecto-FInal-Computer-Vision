@@ -3,7 +3,9 @@ import numpy as np
 
 from letter_classifier import load_templates, detect_letter
 
-CALIB_PATH = "calibration_data.npz"
+VIDEO_PATH = "data/videos/password.mp4"
+CALIB_PATH = "src/calibration/calibration_data.npz"
+
 
 def load_calibration(path: str):
     data = np.load(path, allow_pickle=True)
@@ -14,7 +16,7 @@ def load_calibration(path: str):
 def main():
     templates = load_templates()
 
-    VIDEO_PATH = "video_contraseña_final.mp4"
+    
     cap = cv2.VideoCapture(VIDEO_PATH)
     if not cap.isOpened():
         print("No se ha podido abrir la cámara / vídeo.")
@@ -68,3 +70,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
