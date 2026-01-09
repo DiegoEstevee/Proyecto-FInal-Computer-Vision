@@ -87,7 +87,7 @@ def main():
     ap.add_argument("--src_dir", type=str, default="data/templates")
     ap.add_argument("--out_dir", type=str, default="data/templates")
 
-    ap.add_argument("--labels", type=str, default="ABCD", help="Etiquetas a generar")
+    ap.add_argument("--labels", type=str, default="ABC", help="Etiquetas a generar")
     args = ap.parse_args()
 
     os.makedirs(args.out_dir, exist_ok=True)
@@ -108,4 +108,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
