@@ -7,6 +7,14 @@ Proyecto de Visión por Ordenador en tiempo real con OpenCV que integra dos mód
 
 Todos los resultados se guardan en la carpeta results.
 
+
+## Antes de empezar
+- Cabe a destacar que no hemos hecho un video explicativo ya que al no hacer un sistema con camara en tiempo real, no tenia sentido hacer el video por lo que a continuación bien la explicación.
+  - Primera parte:
+    - El video de demostración se encuentra en la carpeta de data/videos en la que se puede ver un video en el que se alternan diferentes letras, al aplicar nuestro sistema de seguridad, este detectará el patron y se activará el       sistema.
+  - Segunda parte:
+    - El video de demostración también se encuentra en la carpeta de data/videos en la que se puede ver una partida de ping_pong en la que gana el jugador del fondo, aplicando nuestro sistema veremos que este acierta y da como ganador al jugador del fondo.
+
 ---
 
 ## Estructura del repositorio
@@ -18,7 +26,9 @@ Todos los resultados se guardan en la carpeta results.
 - src  
   - calibration  
   - security  
-  - ping_pong  
+  - ping_pong
+- report  
+  - Informe Trabajo Computer Vision 
 - results  
 - requirements.txt  
 - README.md  
@@ -53,7 +63,21 @@ src/calibration/calibration_data.npz
 
 ---
 
-### 2. Detector de letras (opcional)
+---
+
+### 2. Preprocesamiento
+
+Ejecutar:  
+python src/calibration/preprocess.py
+
+Genera:  
+data\templates\tmpl_A.png
+data\templates\tmpl_B.png
+data\templates\tmpl_C.png
+
+---
+
+### 3. Detector de letras (opcional)
 
 Ejecutar:  
 python src/security/run_letter_detector_live.py
@@ -63,7 +87,7 @@ results/letter_detector_output.mp4
 
 ---
 
-### 3. Sistema de contraseña completo
+### 4. Sistema de contraseña completo
 
 Ejecutar:  
 python src/security/run_letter_password_video.py
@@ -83,7 +107,6 @@ Esta parte es independiente del sistema de contraseña.
 
 ### Archivos necesarios
 - data/videos/video_1.mp4  
-- data/videos/video_2.mp4  
 
 ---
 
@@ -129,4 +152,4 @@ results/03_score_bounces_output.mp4
 
 ---
 
-Proyecto realizado como Proyecto Final de Computer Vision utilizando OpenCV.
+Dentro de la carpeta report se encuentra el informe de este proyetco en que se detalla una introducción, la metodología y los resultados.
