@@ -9,7 +9,7 @@ Todos los resultados se guardan en la carpeta results.
 
 
 ## Antes de empezar
-- Cabe a destacar que no hemos hecho un video explicativo ya que al no hacer un sistema con camara en tiempo real, no tenia sentido hacer el video por lo que a continuación bien la explicación.
+- Cabe a destacar que no hemos hecho un video explicativo ya que al no hacer un sistema con camara en tiempo real, no tenia sentido hacer el video por lo que a continuación viene la explicación.
   - Primera parte:
     - El video de demostración se encuentra en la carpeta de data/videos en la que se puede ver un video en el que se alternan diferentes letras, al aplicar nuestro sistema de seguridad, este detectará el patron y se activará el       sistema.
   - Segunda parte:
