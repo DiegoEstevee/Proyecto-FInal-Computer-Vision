@@ -6,14 +6,13 @@ from letter_detector import detect_paper_and_norm
 
 TEMPLATE_SIZE = 200
 
-def load_templates() -> Dict[str, np.ndarray]:
+def load_templates():
     tmpls = {}
-    for lab, path in [("A", "tmpl_A.png"), ("B", "tmpl_B.png"), ("C", "tmpl_C.png") ]:
+    for lab in ["A", "B", "C"]:
+        path = f"data/templates/tmpl_{lab}.png"
         img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
         if img is None:
             raise FileNotFoundError(path)
-        if img.shape != (TEMPLATE_SIZE, TEMPLATE_SIZE):
-            img = cv2.resize(img, (TEMPLATE_SIZE, TEMPLATE_SIZE), interpolation=cv2.INTER_NEAREST)
         tmpls[lab] = img
     return tmpls
 
@@ -38,3 +37,4 @@ def detect_letter(frame_bgr: np.ndarray, templates: Dict[str, np.ndarray], thr: 
     if score < thr:
         return None, score, dbg
     return lab, score, dbg
+
