@@ -5,7 +5,7 @@ import time
 from letter_classifier import load_templates, detect_letter
 
 CALIB_PATH = "src/calibration/calibration_data.npz"
-VIDEO_PATH = "data/videos/password.mp4"
+VIDEO_PATH = "data/videos/video_contraseña_final.mp4"
 OUT_VIDEO_PATH = "results/letter_detector_output.mp4"
 
 def load_calibration(path: str):
@@ -89,3 +89,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
