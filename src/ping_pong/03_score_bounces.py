@@ -1,20 +1,21 @@
 import cv2
 import numpy as np
 from collections import deque
+import os
 
-VIDEO_PATH = "video_1.mp4"
-HOMO_PATH  = "table_homography.npz"
+VIDEO_PATH = "data/videos/video_1.mp4"
+HOMO_PATH  = "data/calibration/table_homography.npz"
+OUT_VIDEO_PATH = "results/03_score_bounces_output.mp4"
 
-# ===== HSV  =====
+os.makedirs("results", exist_ok=True)
+
 HSV_LOWER = (148, 80, 80)
 HSV_UPPER = (172, 255, 255)
 
-# ===== Tracker params =====
 GATE_DIST = 200.0
 MAX_MISS  = 30
 TRACK_LEN = 120
 
-# ===== Detección asimétrica TOP/BOTTOM =====
 MIN_AREA_TOP = 8
 MIN_AREA_BOT = 20
 MIN_R_TOP = 1
@@ -23,31 +24,26 @@ MAX_R_TOP = 80
 MAX_R_BOT = 80
 CIRC_MIN = 0.10
 
-# márgenes 
 MARGIN_X   = 8
 MARGIN_TOP = 0
 MARGIN_BOT = 8
 
-# ===== Bounce params =====
-MID_BAND = 25         
-LOST_RESET = 200      
+MID_BAND = 25
+LOST_RESET = 200
 COOLDOWN_FRAMES = 14
 
 SPEED_MIN = 3.5
 
-# TOP más permisivo (ya que se ve peor)
 ACC_MIN_TOP = 5.0
 ACC_MIN_BOT = 10.0
 ANGLE_MIN_TOP = 15.0
 ANGLE_MIN_BOT = 30.0
 
-
 REV_COS_MAX = -0.25
 
-# ===== SLOW MOTION SOLO EN BOTE =====
-BASE_DELAY_MS = 1        # normal
-SLOW_DELAY_MS = 80       # slow
-SLOW_MO_FRAMES = 30      # cuantos frames dura
+BASE_DELAY_MS = 1
+SLOW_DELAY_MS = 80
+SLOW_MO_FRAMES = 30
 slow_counter = 0
 
 data = np.load(HOMO_PATH)
@@ -67,7 +63,6 @@ def init_kalman():
     return kf
 
 def side_from_pos(x, y, last_side=None):
-    # TOP/BOTTOM con histéresis
     if y < H/2 - MID_BAND:
         return "TOP"
     if y > H/2 + MID_BAND:
@@ -161,19 +156,24 @@ cap = cv2.VideoCapture(VIDEO_PATH)
 if not cap.isOpened():
     raise RuntimeError("No puedo abrir el vídeo.")
 
+fps_out = cap.get(cv2.CAP_PROP_FPS)
+if fps_out is None or fps_out <= 1:
+    fps_out = 30.0
+
+fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+out_writer = cv2.VideoWriter(OUT_VIDEO_PATH, fourcc, fps_out, (W, H))
+
 kf = init_kalman()
 have_init = False
 miss = 0
 
-track = deque(maxlen=TRACK_LEN)  # (x,y,valid)
-p_hist = deque(maxlen=10)        # (x,y,in_table)
+track = deque(maxlen=TRACK_LEN)
+p_hist = deque(maxlen=10)
 
 cooldown = 0
 bounce_total = 0
 
-# ===== MODO: 1 SOLO PUNTO (primer punto gana) =====
-winner = None          # "TOP" o "BOT"
-
+winner = None
 
 last_bounce_side = None
 bounce_streak = 0
@@ -193,7 +193,6 @@ while True:
     table = cv2.warpPerspective(frame, M, (W, H))
     last_table_frame = table.copy()
 
-    # predicción
     pred = kf.predict()
     px = float(pred[0, 0])
     py = float(pred[1, 0])
@@ -236,7 +235,6 @@ while True:
 
     track.append((x, y, valid))
 
-    # pseudo-valid (TOP suele perder frames)
     pseudo_valid = (not valid) and have_init and (miss <= 3)
     use_x = x if valid else px
     use_y = y if valid else py
@@ -244,24 +242,20 @@ while True:
     in_table = (valid or pseudo_valid) and (MARGIN_X <= use_x <= W-MARGIN_X) and (MARGIN_TOP <= use_y <= H-MARGIN_BOT)
     p_hist.append((use_x, use_y, in_table))
 
-    # línea horizontal TOP/BOTTOM
     cv2.line(table, (0, H//2), (W, H//2), (0, 255, 255), 2)
 
-    # estela
     for i in range(1, len(track)):
         x1, y1, v1 = track[i-1]
         x2, y2, v2 = track[i]
         if v1 and v2:
             cv2.line(table, (int(x1), int(y1)), (int(x2), int(y2)), (255,255,255), 1)
 
-    # bola actual
     if valid:
         cv2.circle(table, (int(x), int(y)), int(max(r, 2)), (0,255,0), 2)
         cv2.circle(table, (int(x), int(y)), 2, (0,255,0), -1)
     else:
         cv2.circle(table, (int(px), int(py)), 3, (0,0,255), -1)
 
-    # ===== bounce detect =====
     bounce = False
     bounce_side = None
     spd = 0.0
@@ -307,8 +301,6 @@ while True:
     if bounce:
         bounce_total += 1
         rally_active = True
-
-        # slow motion solo en bote
         slow_counter = max(slow_counter, SLOW_MO_FRAMES)
 
         if bounce_side == last_bounce_side:
@@ -320,22 +312,13 @@ while True:
         cv2.putText(table, f"BOUNCE {bounce_side}", (15, 70),
                     cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0,255,255), 2)
 
-        # ===== REGLA: primer punto gana =====
-        # Punto ocurre si hay 2 botes seguidos en el mismo lado
-        
         if winner is None and rally_active and bounce_streak >= 2:
             winner = "BOT" if bounce_side == "TOP" else "TOP"
-            winner_reason = f"DOUBLE BOUNCE on {bounce_side}"
-
-            
             rally_active = False
             last_bounce_side = None
             bounce_streak = 0
 
-    # ===== HUD =====
-    
     hud_line1 = "BOT  vs  TOP"
-
     hud_line2 = "WIN CONDITION: FIRST POINT WINS"
 
     cv2.putText(table, hud_line1, (15, H-20),
@@ -351,7 +334,6 @@ while True:
         cv2.putText(table, "SLOW MOTION", (W-230, 35),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0,255,255), 2)
 
-    # FPS
     tick_now = cv2.getTickCount()
     dt = (tick_now - tick_prev) / cv2.getTickFrequency()
     tick_prev = tick_now
@@ -360,10 +342,9 @@ while True:
     cv2.putText(table, f"FPS:{fps_s:.1f}", (15, 35),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255,255,255), 2)
 
+    out_writer.write(table)
     cv2.imshow("score_bounces", table)
-    # cv2.imshow("mask", mask)
 
-    
     delay = SLOW_DELAY_MS if slow_counter > 0 else BASE_DELAY_MS
     k = cv2.waitKey(delay) & 0xFF
     if slow_counter > 0:
@@ -373,9 +354,9 @@ while True:
         break
 
 cap.release()
+out_writer.release()
 cv2.destroyAllWindows()
 
-# ===== ganador final =====
 if winner is None:
     winner_text = "NO_DECISION"
 else:
