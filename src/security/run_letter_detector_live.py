@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import time
 
 from letter_classifier import load_templates, detect_letter
 
@@ -27,7 +28,6 @@ def main():
 
     ret, frame0 = cap.read()
     if not ret:
-        print("No se pudo leer el primer frame.")
         cap.release()
         return
 
@@ -47,6 +47,7 @@ def main():
     )
 
     thr = 0.45
+    t_prev = time.time()
 
     while True:
         ret, frame = cap.read()
@@ -57,10 +58,19 @@ def main():
 
         label, score, dbg = detect_letter(frame_und, templates, thr=thr)
 
+        t_now = time.time()
+        fps_inst = 1.0 / max(1e-6, (t_now - t_prev))
+        t_prev = t_now
+
         out = frame_und.copy()
         txt = f"Letra: {label if label else '-'}  score: {score:.3f}  thr:{thr:.2f}"
+        fps_txt = f"FPS: {fps_inst:.1f}"
+
         cv2.putText(out, txt, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0,0,0), 3, cv2.LINE_AA)
         cv2.putText(out, txt, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255,255,255), 1, cv2.LINE_AA)
+
+        cv2.putText(out, fps_txt, (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0,0,0), 3, cv2.LINE_AA)
+        cv2.putText(out, fps_txt, (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255,255,255), 1, cv2.LINE_AA)
 
         out_writer.write(out)
         cv2.imshow("Letter classification (undistorted)", out)
