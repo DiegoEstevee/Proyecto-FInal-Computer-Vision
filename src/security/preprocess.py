@@ -84,8 +84,9 @@ def find_source_for_label(src_dir: str, label: str):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--src_dir", type=str, default=".", help="Carpeta donde están A/B/C fuente")
-    ap.add_argument("--out_dir", type=str, default=".", help="Carpeta de salida")
+    ap.add_argument("--src_dir", type=str, default="data/templates")
+    ap.add_argument("--out_dir", type=str, default="data/templates")
+
     ap.add_argument("--labels", type=str, default="ABCD", help="Etiquetas a generar")
     args = ap.parse_args()
 
@@ -107,3 +108,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
