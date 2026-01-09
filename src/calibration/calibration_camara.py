@@ -8,11 +8,13 @@ from typing import List, Tuple
 # CONFIG
 # =========================
 
-IMAGES_GLOB = "*.jpeg"          
+IMAGES_GLOB = "data/calibration/*.jpeg"
+OUTPUT_NPZ = "src/calibration/calibration_data.npz"
+
 RESIZE_TO = (1080, 810)         
 CHESSBOARD_SHAPE = (7, 9)       
 SQUARE_SIZE = 0.030             
-OUTPUT_NPZ = "calibration_data.npz"
+
 
 # =========================
 # Helpers
@@ -123,3 +125,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
