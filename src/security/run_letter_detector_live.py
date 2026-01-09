@@ -19,7 +19,7 @@ def main():
     
     cap = cv2.VideoCapture(VIDEO_PATH)
     if not cap.isOpened():
-        print("No se ha podido abrir la cámara / vídeo.")
+        print("No se ha podido abrir el vídeo.")
         return
 
     # Leer un frame para fijar tamaño
@@ -70,4 +70,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
