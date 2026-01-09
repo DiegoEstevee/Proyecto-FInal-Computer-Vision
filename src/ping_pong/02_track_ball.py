@@ -3,8 +3,8 @@ import numpy as np
 from collections import deque
 import os
 
-VIDEO_PATH = "data/videos/video_2.mp4"
-HOMO_PATH  = "data/calibration/table_homography2.npz"
+VIDEO_PATH = "data/videos/video_1.mp4"
+HOMO_PATH  = "data/calibration/table_homography1.npz"
 OUT_VIDEO_PATH = "results/02_track_ball_output.mp4"
 
 os.makedirs("results", exist_ok=True)
@@ -193,3 +193,4 @@ while True:
 cap.release()
 out_writer.release()
 cv2.destroyAllWindows()
+
