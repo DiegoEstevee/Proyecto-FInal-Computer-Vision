@@ -1,21 +1,21 @@
 import cv2
 import numpy as np
 from collections import deque
+import os
 
-VIDEO_PATH = "video_2.mp4"
-HOMO_PATH  = "table_homography2.npz"
+VIDEO_PATH = "data/videos/video_2.mp4"
+HOMO_PATH  = "data/calibration/table_homography2.npz"
+OUT_VIDEO_PATH = "results/02_track_ball_output.mp4"
 
-# ===== HSV =====
-HSV_LOWER = (148, 50, 50)   
+os.makedirs("results", exist_ok=True)
+
+HSV_LOWER = (148, 50, 50)
 HSV_UPPER = (172,255,255)
 
-
-# ===== Tracker params =====
 GATE_DIST = 200.0
 MAX_MISS  = 30
 TRACK_LEN = 150
 
-# ===== Detección asimétrica TOP/BOTTOM =====
 MIN_AREA_TOP = 8
 MIN_AREA_BOT = 20
 MIN_R_TOP = 1
@@ -24,7 +24,6 @@ MAX_R_TOP = 80
 MAX_R_BOT = 80
 CIRC_MIN_TOP = 0.06
 CIRC_MIN_BOT = 0.10
-
 
 data = np.load(HOMO_PATH)
 M, W, H = data["M"], int(data["W"]), int(data["H"])
@@ -57,7 +56,6 @@ def find_candidates(table_bgr):
         area = cv2.contourArea(c)
         (x, y), r = cv2.minEnclosingCircle(c)
 
-        # TOP más permisivo
         if y < H/2:
             min_area = MIN_AREA_TOP
             min_r = MIN_R_TOP
@@ -78,7 +76,6 @@ def find_candidates(table_bgr):
             circ_thr = CIRC_MIN_TOP if y < H/2 else CIRC_MIN_BOT
             if circ < circ_thr:
                 continue
-
 
         cands.append((float(x), float(y), float(r), float(area)))
 
@@ -110,11 +107,18 @@ cap = cv2.VideoCapture(VIDEO_PATH)
 if not cap.isOpened():
     raise RuntimeError("No puedo abrir el vídeo.")
 
+fps_out = cap.get(cv2.CAP_PROP_FPS)
+if fps_out is None or fps_out <= 1:
+    fps_out = 30.0
+
+fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+out_writer = cv2.VideoWriter(OUT_VIDEO_PATH, fourcc, fps_out, (W, H))
+
 kf = init_kalman()
 have_init = False
 miss = 0
 
-track = deque(maxlen=TRACK_LEN)  # (x,y,valid)
+track = deque(maxlen=TRACK_LEN)
 
 tick_prev = cv2.getTickCount()
 fps_s = 0.0
@@ -126,7 +130,6 @@ while True:
 
     table = cv2.warpPerspective(frame, M, (W, H))
 
-    # predicción
     pred = kf.predict()
     px = float(pred[0, 0])
     py = float(pred[1, 0])
@@ -159,21 +162,18 @@ while True:
 
     track.append((x, y, valid))
 
-    # estela (solo detecciones válidas consecutivas)
     for i in range(1, len(track)):
         x1, y1, v1 = track[i-1]
         x2, y2, v2 = track[i]
         if v1 and v2:
             cv2.line(table, (int(x1), int(y1)), (int(x2), int(y2)), (255,255,255), 1)
 
-    # punto actual
     if valid:
         cv2.circle(table, (int(x), int(y)), int(max(r, 2)), (0,255,0), 2)
         cv2.circle(table, (int(x), int(y)), 2, (0,255,0), -1)
     else:
         cv2.circle(table, (int(px), int(py)), 3, (0,0,255), -1)
 
-    # FPS
     tick_now = cv2.getTickCount()
     dt = (tick_now - tick_prev) / cv2.getTickFrequency()
     tick_prev = tick_now
@@ -183,12 +183,13 @@ while True:
     cv2.putText(table, f"FPS:{fps_s:.1f} miss:{miss} cands:{len(cands)}",
                 (15, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255,255,255), 2)
 
+    out_writer.write(table)
     cv2.imshow("track_ball", table)
-    # cv2.imshow("mask", mask)
 
     k = cv2.waitKey(1) & 0xFF
     if k == 27:
         break
 
 cap.release()
+out_writer.release()
 cv2.destroyAllWindows()
